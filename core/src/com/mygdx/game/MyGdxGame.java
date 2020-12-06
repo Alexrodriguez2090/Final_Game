@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -26,17 +27,20 @@ import edu.lewisu.cs.cpsc41000.common.motioncontrollers.Tracker;
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
-	Texture bg;
-	Texture fg;
+	Texture bg, fg, menuImg;
 
 	int WIDTH, HEIGHT;
-	OrthographicCamera cam;
+	OrthographicCamera cam, titleCam;
+
+	int level, scene;
 
 	MobileImageBasedScreenObject character;
 	ImageBasedScreenObjectDrawer drawer;
 	boolean jumpAvailable;
 
 	ArrayList<Boundary> floor = new ArrayList<Boundary>();
+	ArrayList<Boundary> floorl1s1 = new ArrayList<Boundary>();
+	ArrayList<Boundary> floorl1s2 = new ArrayList<Boundary>();
 	ArrayList<Boundary> walls = new ArrayList<Boundary>();
 	EdgeHandler edges;
 	Vector2 bounce;
@@ -51,8 +55,9 @@ public class MyGdxGame extends ApplicationAdapter {
 	public void create () {
 		batch = new SpriteBatch();
 		img = new Texture("chara2/animations.png");
-		tatlas = new TextureAtlas("chara2/running.atlas");
-		animation = new Animation<TextureRegion>(1f/32f, tatlas.getRegions());
+		menuImg = new Texture("levels/level1/scene2.png");
+		//tatlas = new TextureAtlas("chara2/running.atlas");
+		//animation = new Animation<TextureRegion>(1f/32f, tatlas.getRegions());
 		drawer = new ImageBasedScreenObjectDrawer(batch);
 		character = new MobileImageBasedScreenObject(img, 50, 900, false);
 
@@ -65,24 +70,126 @@ public class MyGdxGame extends ApplicationAdapter {
 		character.setDeceleration(600);
 		jumpAvailable = true;
 
-		bg = new Texture("scenes/scene1.png");
-		fg = new Texture("scenes/scene1fore.png");
-
 		WIDTH = Gdx.graphics.getWidth();
 		HEIGHT = Gdx.graphics.getHeight();
+		level = 0; //Main menu
+		titleCam = new OrthographicCamera(WIDTH,HEIGHT);
+		titleCam.translate(WIDTH/2,HEIGHT/2);
+		titleCam.update();
+
+		bg = new Texture("levels/level1/scene1.png");
+		fg = new Texture("levels/level1/scene1fore.png");
+
 		cam = new OrthographicCamera(WIDTH,HEIGHT);
 		cam.translate(WIDTH/2, HEIGHT/2);
 		cam.update();
 		batch.setProjectionMatrix(cam.combined);
 
 		//Level 1 Scene 1
-		floor.add(new Boundary(20, 350, 140, 348));
-		floor.add(new Boundary(233, 306, 640, 374));
-		floor.add(new Boundary(205, 1, 640, 14));
+		floorl1s1.add(new Boundary(20, 350, 140, 348));
+		floorl1s1.add(new Boundary(233, 306, 640, 374)); //Add wall
+		floorl1s1.add(new Boundary(205, 1, 640, 14));
+		floorl1s1.add(new Boundary(0, 1, 204, 3));
 		//walls.add(new Boundary(233, 108, 640, 175));
 		//floor.add(new Boundary(0, 150, 50, 160));
-		
+
+		//Level 1 Scene 2
+		//bg = new Texture("scenes/scene2.png");
+		//fg = null;
+
+
 		edges = new EdgeHandler(character, cam, batch);
+		loadScene(1, 1);
+	}
+
+	public void mainMenu() {
+		Gdx.gl.glClearColor(1, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		if (Gdx.input.isKeyPressed(Keys.SPACE)) {
+			level = 1;
+		} else {
+			batch.setProjectionMatrix(titleCam.combined);
+			batch.begin();
+			batch.draw(menuImg, 0, 0);
+			batch.end();
+		}
+	}
+
+	public void loadScene(int level, int scene) {
+		bg = new Texture(String.format("levels/level%d/scene%d.png", level, scene));
+		fg = new Texture(String.format("levels/level%d/scene%dfore.png", level, scene));
+
+		floor.clear();
+		FileHandle handle = Gdx.files.local(String.format("levels/level%d/floor%d.txt", level, scene));
+		String text = handle.readString();
+		String[] bounds = text.split("\n");
+
+		for (String bString : bounds) {
+			String[] arrayToChange = bString.trim().split(" ");
+
+			Integer[] bInt = new Integer[4];
+			int i = 0;
+			for (String number : arrayToChange) {
+				bInt[i] = Integer.parseInt(number);
+				i += 1;
+			}
+			floor.add(new Boundary(bInt[0], bInt[1], bInt[2], bInt[3]));
+		}
+	}
+	public void playing() {
+		Gdx.gl.glClearColor(1, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		float dt = Gdx.graphics.getDeltaTime();
+		totalTime += dt;
+
+		if (Gdx.input.isKeyPressed(Keys.SPACE) && jumpAvailable) {
+			character.accelerateAtAngle(90);
+			character.startJump();
+			jumpAvailable = false;
+		}
+		if (Gdx.input.isKeyPressed(Keys.W)) { //Debug code
+			character.accelerateAtAngle(90);
+			character.startJump();
+		}
+		if (Gdx.input.isKeyPressed(Keys.A)) {
+			if (!character.getFlipX()) {
+				character.flipX();
+			}
+			character.accelerateAtAngle(180);
+		}
+		if (Gdx.input.isKeyPressed(Keys.S)) {
+			character.accelerateAtAngle(270);
+		}
+		if (Gdx.input.isKeyPressed(Keys.D)) {
+			if (character.getFlipX()) {
+				character.flipX();
+			}
+			character.accelerateAtAngle(0);
+		}
+		character.applyPhysics(dt);
+		edges.enforceEdges();
+
+		status = 2;
+		for (Boundary platform : floor) {
+			if (character.overlaps(platform)) {
+				character.rebound(character.preventOverlap(platform).angle(),0f);
+				jumpAvailable = true;
+				if (character.isMoving()) {
+					status = 1;
+				} else {
+					status = 0;
+				}
+			}
+		}
+
+		batch.setProjectionMatrix(cam.combined);
+		batch.begin();
+		batch.draw(bg, 0, 0);
+		//batch.draw(animation.getKeyFrame(totalTime, true), 0, 0);
+		//batch.draw(img, 0, 0);
+		drawer.draw(character, status);
+		batch.draw(fg, 0, 0);
+		batch.end();
 	}
 
 	@Override
@@ -130,6 +237,10 @@ public class MyGdxGame extends ApplicationAdapter {
 					status = 0;
 				}
 			}
+		}
+		if (character.getXPos() > 580 && character.getYPos() < 15) {
+			character.setXPos(20);
+			loadScene(1,2);
 		}
 
 		batch.setProjectionMatrix(cam.combined);
