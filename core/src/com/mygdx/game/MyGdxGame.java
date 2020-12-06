@@ -75,10 +75,13 @@ public class MyGdxGame extends ApplicationAdapter {
 		cam.update();
 		batch.setProjectionMatrix(cam.combined);
 
+		//Level 1 Scene 1
 		floor.add(new Boundary(20, 350, 140, 348));
 		floor.add(new Boundary(233, 306, 640, 374));
+		floor.add(new Boundary(205, 1, 640, 14));
 		//walls.add(new Boundary(233, 108, 640, 175));
 		//floor.add(new Boundary(0, 150, 50, 160));
+		
 		edges = new EdgeHandler(character, cam, batch);
 	}
 
@@ -99,12 +102,18 @@ public class MyGdxGame extends ApplicationAdapter {
 			character.startJump();
 		}
 		if (Gdx.input.isKeyPressed(Keys.A)) {
+			if (!character.getFlipX()) {
+				character.flipX();
+			}
 			character.accelerateAtAngle(180);
 		}
 		if (Gdx.input.isKeyPressed(Keys.S)) {
 			character.accelerateAtAngle(270);
 		}
 		if (Gdx.input.isKeyPressed(Keys.D)) {
+			if (character.getFlipX()) {
+				character.flipX();
+			}
 			character.accelerateAtAngle(0);
 		}
 		character.applyPhysics(dt);
