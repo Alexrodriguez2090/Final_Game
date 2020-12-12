@@ -86,10 +86,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.setProjectionMatrix(cam.combined);
 
 		//Level 1 Scene 1
-		floorl1s1.add(new Boundary(20, 350, 140, 348));
-		floorl1s1.add(new Boundary(233, 306, 640, 374)); //Add wall
-		floorl1s1.add(new Boundary(205, 1, 640, 14));
-		floorl1s1.add(new Boundary(0, 1, 204, 3));
+		//floorl1s1.add(new Boundary(20, 350, 140, 348));
+		//floorl1s1.add(new Boundary(233, 306, 640, 374)); //Add wall
+		//floorl1s1.add(new Boundary(205, 1, 640, 14));
+		//floorl1s1.add(new Boundary(0, 1, 204, 3));
 		//walls.add(new Boundary(233, 108, 640, 175));
 		//floor.add(new Boundary(0, 150, 50, 160));
 
@@ -120,11 +120,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		fg = new Texture(String.format("levels/level%d/scene%dfore.png", level, scene));
 
 		floor.clear();
-		FileHandle handle = Gdx.files.local(String.format("levels/level%d/floor%d.txt", level, scene));
-		String text = handle.readString();
-		String[] bounds = text.split("\n");
+		FileHandle handleFloor = Gdx.files.local(String.format("levels/level%d/floor%d.txt", level, scene));
+		String textFloor = handleFloor.readString();
+		String[] floorBounds = textFloor.split("\n");
 
-		for (String bString : bounds) {
+		for (String bString : floorBounds) {
 			String[] arrayToChange = bString.trim().split(" ");
 
 			Integer[] bInt = new Integer[4];
@@ -134,6 +134,23 @@ public class MyGdxGame extends ApplicationAdapter {
 				i += 1;
 			}
 			floor.add(new Boundary(bInt[0], bInt[1], bInt[2], bInt[3]));
+		}
+
+		walls.clear();
+		FileHandle handleWalls = Gdx.files.local(String.format("levels/level%d/walls%d.txt", level, scene));
+		String textWalls = handleWalls.readString();
+		String[] wallBounds = textWalls.split("\n");
+
+		for (String bString : wallBounds) {
+			String[] arrayToChange = bString.trim().split(" ");
+
+			Integer[] bInt = new Integer[4];
+			int i = 0;
+			for (String number : arrayToChange) {
+				bInt[i] = Integer.parseInt(number);
+				i += 1;
+			}
+			walls.add(new Boundary(bInt[0], bInt[1], bInt[2], bInt[3]));
 		}
 	}
 	public void playing() {
@@ -231,6 +248,16 @@ public class MyGdxGame extends ApplicationAdapter {
 			if (character.overlaps(platform)) {
 				character.rebound(character.preventOverlap(platform).angle(),0f);
 				jumpAvailable = true;
+				if (character.isMoving()) {
+					status = 1;
+				} else {
+					status = 0;
+				}
+			}
+		}
+		for (Boundary wall : walls) {
+			if (character.overlaps(wall)) {
+				character.rebound(character.preventOverlap(wall).angle(),0f);
 				if (character.isMoving()) {
 					status = 1;
 				} else {

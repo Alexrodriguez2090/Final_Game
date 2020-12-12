@@ -53,7 +53,7 @@ public class EdgeHandler {
      */
     public EdgeHandler(ImageBasedScreenObject obj, OrthographicCamera cam,
     SpriteBatch batch) {
-        this(obj,cam,batch,0,Gdx.graphics.getWidth(),0,Gdx.graphics.getHeight(),20,
+        this(obj,cam,batch,0,Gdx.graphics.getWidth(),0,Gdx.graphics.getHeight(),1,
         EdgeConstants.LOCK,EdgeConstants.LOCK);
     }
     /**
