@@ -38,6 +38,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	ImageBasedScreenObjectDrawer drawer;
 	boolean jumpAvailable;
 
+	int[] levelChange = new int[4];
+
 	ArrayList<Boundary> floor = new ArrayList<Boundary>();
 	ArrayList<Boundary> floorl1s1 = new ArrayList<Boundary>();
 	ArrayList<Boundary> floorl1s2 = new ArrayList<Boundary>();
@@ -50,6 +52,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	float totalTime;
 	int status;
+	int sceneNumber;
 
 	@Override
 	public void create () {
@@ -97,9 +100,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		//bg = new Texture("scenes/scene2.png");
 		//fg = null;
 
-
+		sceneNumber = 1;
 		edges = new EdgeHandler(character, cam, batch);
-		loadScene(1, 1);
+		loadScene(1, sceneNumber);
 	}
 
 	public void mainMenu() {
@@ -151,6 +154,16 @@ public class MyGdxGame extends ApplicationAdapter {
 				i += 1;
 			}
 			walls.add(new Boundary(bInt[0], bInt[1], bInt[2], bInt[3]));
+		}
+
+		
+		FileHandle levelChangeHandler = Gdx.files.local(String.format("levels/level%d/change%d.txt", level, scene));
+		String textChange = levelChangeHandler.readString();
+		String[] levelChangeString = textChange.split(" ");
+		int i = 0;
+		for (String coord : levelChangeString) {
+			levelChange[i] = Integer.parseInt(coord);
+			i++;
 		}
 	}
 	public void playing() {
@@ -242,7 +255,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		character.applyPhysics(dt);
 		edges.enforceEdges();
-
+		
 		status = 2;
 		for (Boundary platform : floor) {
 			if (character.overlaps(platform)) {
@@ -265,10 +278,13 @@ public class MyGdxGame extends ApplicationAdapter {
 				}
 			}
 		}
-		if (character.getXPos() > 580 && character.getYPos() < 15) {
-			character.setXPos(20);
-			loadScene(1,2);
+		if (character.getXPos() == levelChange[0] && character.getYPos() == levelChange[1]) {
+			character.setXPos(levelChange[2]);
+			character.setYPos(levelChange[3]);
+			sceneNumber++;
+			loadScene(1,sceneNumber);
 		}
+		System.out.printf("%f %f\n", character.getXPos(), character.getYPos());
 
 		batch.setProjectionMatrix(cam.combined);
 		batch.begin();
