@@ -15,6 +15,7 @@ public class MobileImageBasedScreenObject extends AnimatedImageBasedScreenObject
     protected float deceleration;
     protected float jump;
 
+
     public MobileImageBasedScreenObject(Texture tex) {
         this(tex,0,0,0,0,0,1,1,false,false,0,0,null,0);
     }
@@ -139,18 +140,12 @@ public class MobileImageBasedScreenObject extends AnimatedImageBasedScreenObject
         // update velocity to match new speed
         setSpeed(speed);
 
-        //move(velocityVec.x*dt, velocityVec.y*dt);
         if (jump > 0) {
             isJumping(dt);
             move(velocityVec.x*dt, 1f);
         } else {
             move(velocityVec.x*dt, -1.5f);
         }
-        /*if (isJumping(dt)) {
-            move(velocityVec.x*dt, 1f);
-        } else {
-            move(velocityVec.x*dt, -1.5f);
-        }*/
         
 
         if (jump > 0) {
