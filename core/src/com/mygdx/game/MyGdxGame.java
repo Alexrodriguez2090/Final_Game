@@ -10,20 +10,14 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import edu.lewisu.cs.cpsc41000.common.Boundary;
 import edu.lewisu.cs.cpsc41000.common.EdgeHandler;
-import edu.lewisu.cs.cpsc41000.common.ImageBasedScreenObject;
 import edu.lewisu.cs.cpsc41000.common.ImageBasedScreenObjectDrawer;
 import edu.lewisu.cs.cpsc41000.common.MobileImageBasedScreenObject;
-import edu.lewisu.cs.cpsc41000.common.labels.ActionLabel;
-import edu.lewisu.cs.cpsc41000.common.labels.SoundLabel;
-import edu.lewisu.cs.cpsc41000.common.motioncontrollers.Tracker;
+
 
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
@@ -50,10 +44,9 @@ public class MyGdxGame extends ApplicationAdapter {
 	EdgeHandler edges;
 	Vector2 bounce;
 	
-	//TextureAtlas tatlas;
-	//Animation<TextureRegion> animation;
-	Texture enemy, bScreen;
-	int enemyTimer;
+	Texture enemy, bScreen, tfp;
+	int enemyTimer, endTimer;
+	
 
 	float totalTime;
 	int status;
@@ -68,6 +61,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		character = new MobileImageBasedScreenObject(img, 50, 900, false);
 		enemy = new Texture("enemies/eil-final.png");
 		bScreen = new Texture("enemies/bscreen.png");
+		tfp = new Texture("levels/tfp.png");
 		song = Gdx.audio.newMusic(Gdx.files.internal("audio/swim.ogg"));
 		song.play();
 
@@ -97,6 +91,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		sceneNumber = 1;
 		enemyTimer = 0;
+		endTimer = 0;
 		edges = new EdgeHandler(character, cam, batch);
 		loadScene(1, sceneNumber);
 	}
@@ -171,6 +166,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		}
 
+
 		batch.begin();
 		batch.draw(bg, 0, 0);
 		if (enemyTimer < 300) {
@@ -180,6 +176,17 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.draw(fg, 0, 0);
 		if (enemyTimer > 250 && enemyTimer < 300) {
 			batch.draw(bScreen, 0, 0);
+		}
+		if (character.getXPos() == 586 && character.getYPos() == 10) {
+			batch.draw(tfp, 0, 0);
+			endTimer++;
+			if (endTimer > 290) {
+				loadScene(1, 1);
+				level = 0;
+				sceneNumber = 0;
+				character.setXPos(20);
+				character.setYPos(460);
+			}
 		}
 		batch.end();
 	}
@@ -329,74 +336,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		} else if (level == 101) {
 			cutscene();
 		}
-		
-		/*Gdx.gl.glClearColor(1, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		float dt = Gdx.graphics.getDeltaTime();
-		totalTime += dt;
-
-		if (Gdx.input.isKeyPressed(Keys.SPACE) && jumpAvailable) {
-			character.accelerateAtAngle(90);
-			character.startJump();
-			jumpAvailable = false;
-		}
-		if (Gdx.input.isKeyPressed(Keys.W)) { //Debug code
-			character.accelerateAtAngle(90);
-			character.startJump();
-		}
-		if (Gdx.input.isKeyPressed(Keys.A)) {
-			if (!character.getFlipX()) {
-				character.flipX();
-			}
-			character.accelerateAtAngle(180);
-		}
-		if (Gdx.input.isKeyPressed(Keys.S)) {
-			character.accelerateAtAngle(270);
-		}
-		if (Gdx.input.isKeyPressed(Keys.D)) {
-			if (character.getFlipX()) {
-				character.flipX();
-			}
-			character.accelerateAtAngle(0);
-		}
-		character.applyPhysics(dt);
-		edges.enforceEdges();
-		
-		status = 2;
-		for (Boundary platform : floor) {
-			if (character.overlaps(platform)) {
-				character.rebound(character.preventOverlap(platform).angle(),0f);
-				jumpAvailable = true;
-				if (character.isMoving()) {
-					status = 1;
-				} else {
-					status = 0;
-				}
-			}
-		}
-		for (Boundary wall : walls) {
-			if (character.overlaps(wall)) {
-				character.rebound(character.preventOverlap(wall).angle(),0f);
-				if (character.isMoving()) {
-					status = 1;
-				} else {
-					status = 0;
-				}
-			}
-		}
-		if (character.getXPos() == levelChange[0] && character.getYPos() == levelChange[1]) {
-			character.setXPos(levelChange[2]);
-			character.setYPos(levelChange[3]);
-			sceneNumber++;
-			loadScene(1,sceneNumber);
-		}
-
-		batch.setProjectionMatrix(cam.combined);
-		batch.begin();
-		batch.draw(bg, 0, 0);
-		drawer.draw(character, status);
-		batch.draw(fg, 0, 0);
-		batch.end();*/
 	}
 	
 	@Override
